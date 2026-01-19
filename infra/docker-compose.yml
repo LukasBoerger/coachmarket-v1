@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: coachkompass_postgres
+    environment:
+      POSTGRES_DB: coachkompass
+      POSTGRES_USER: coachkompass
+      POSTGRES_PASSWORD: coachkompass
+    ports:
+      - "55432:5432"
+    volumes:
+      - coachkompass_pgdata:/var/lib/postgresql/data
+
+volumes:
+  coachkompass_pgdata:

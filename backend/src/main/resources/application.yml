@@ -1,0 +1,18 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:55432/coachkompass
+    username: "coachkompass"
+    password: "coachkompass"
+    hikari:
+      data-source-properties:
+        loggerLevel: TRACE
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    user: ${spring.datasource.username}
+    password: ${spring.datasource.password}
