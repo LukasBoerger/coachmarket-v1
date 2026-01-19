@@ -1,7 +1,5 @@
-package de.coachkompass.backend.infrastructure.crudrepositories;
+package de.coachkompass.backend.infrastructure.coach;
 
-import de.coachkompass.backend.domain.coach.Coach;
-import de.coachkompass.backend.infrastructure.entities.CoachEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

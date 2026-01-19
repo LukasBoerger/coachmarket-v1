@@ -1,4 +1,4 @@
-package de.coachkompass.backend.application.controller;
+package de.coachkompass.backend.application;
 
 import java.util.Map;
 import org.springframework.web.bind.annotation.GetMapping;

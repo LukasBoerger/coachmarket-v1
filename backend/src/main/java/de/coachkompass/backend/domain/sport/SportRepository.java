@@ -1,8 +1,12 @@
 package de.coachkompass.backend.domain.sport;
 
-import java.util.UUID;
+import de.coachkompass.backend.application.sport.SportDto;
 
-import de.coachkompass.backend.infrastructure.entities.SportEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+import java.util.Optional;
 
-public interface SportRepository extends JpaRepository<SportEntity, UUID> {}
+public interface SportRepository{
+    public List<Sport> listPublished();
+
+    public Optional<Sport> getBySlug(String slug);
+}

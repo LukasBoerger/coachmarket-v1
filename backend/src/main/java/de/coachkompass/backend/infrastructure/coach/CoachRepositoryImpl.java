@@ -1,4 +1,4 @@
-package de.coachkompass.backend.infrastructure.repositoryimpl;
+package de.coachkompass.backend.infrastructure.coach;
 
 import de.coachkompass.backend.domain.coach.Coach;
 import de.coachkompass.backend.domain.coach.CoachRepository;
@@ -9,6 +9,7 @@ import java.util.Optional;
 
 @Repository
 public class CoachRepositoryImpl implements CoachRepository {
+
     @Override
     public List<Coach> findAllPublished() {
         return List.of();

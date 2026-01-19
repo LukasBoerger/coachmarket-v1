@@ -1,4 +1,4 @@
-package de.coachkompass.backend.infrastructure.entities;
+package de.coachkompass.backend.infrastructure.coach;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

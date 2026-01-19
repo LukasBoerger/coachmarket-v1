@@ -1,8 +1,7 @@
-package de.coachkompass.backend.infrastructure.mappers;
+package de.coachkompass.backend.infrastructure.coach;
 
 import de.coachkompass.backend.domain.coach.Coach;
 import de.coachkompass.backend.domain.coach.CoachStatus;
-import de.coachkompass.backend.infrastructure.entities.CoachEntity;
 
 public final class CoachMapper {
     private CoachMapper() {}

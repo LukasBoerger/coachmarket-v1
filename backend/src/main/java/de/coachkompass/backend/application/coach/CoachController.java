@@ -1,8 +1,7 @@
-package de.coachkompass.backend.application.Coach;
+package de.coachkompass.backend.application.coach;
 
 
 import de.coachkompass.backend.domain.coach.CoachService;
-import de.coachkompass.backend.infrastructure.mappers.CoachMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

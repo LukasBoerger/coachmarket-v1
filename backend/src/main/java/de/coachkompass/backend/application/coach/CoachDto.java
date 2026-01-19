@@ -1,4 +1,4 @@
-package de.coachkompass.backend.application.Coach;
+package de.coachkompass.backend.application.coach;
 
 import java.math.BigDecimal;
 import java.util.UUID;
