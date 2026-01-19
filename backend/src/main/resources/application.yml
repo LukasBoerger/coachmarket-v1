@@ -10,6 +10,7 @@ spring:
       data-source-properties:
         loggerLevel: TRACE
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: validate
   flyway:

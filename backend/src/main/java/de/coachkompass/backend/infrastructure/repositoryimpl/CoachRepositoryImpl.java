@@ -2,10 +2,12 @@ package de.coachkompass.backend.infrastructure.repositoryimpl;
 
 import de.coachkompass.backend.domain.coach.Coach;
 import de.coachkompass.backend.domain.coach.CoachRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public class CoachRepositoryImpl implements CoachRepository {
     @Override
     public List<Coach> findAllPublished() {
