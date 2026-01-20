@@ -24,4 +24,8 @@ public class CoachService {
     public Optional<Coach> getBySlug(String slug) {
         return coachRepo.findBySlug(slug);
     }
+
+    public List<Coach> searchPublished(CoachSearchQuery query) {
+        return coachRepo.searchPublished(query);
+    }
 }

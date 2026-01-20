@@ -22,4 +22,21 @@ public final class CoachMapper {
                 CoachStatus.valueOf(e.getStatus())
         );
     }
+
+    public static Coach toDomain(CoachRow r) {
+        return new Coach(
+                r.getId(),
+                r.getDisplayName(),
+                r.getSlug(),
+                r.getBio(),
+                r.getWebsiteUrl(),
+                r.getCity(),
+                Boolean.TRUE.equals(r.getRemoteAvailable()),
+                Boolean.TRUE.equals(r.getInPersonAvailable()),
+                r.getPriceMin(),
+                r.getPriceMax(),
+                r.getCurrency(),
+                CoachStatus.valueOf(r.getStatus())
+        );
+    }
 }

@@ -25,6 +25,6 @@ public class SportRepositoryImpl implements SportRepository {
 
     @Override
     public Optional<Sport> getBySlug(String slug) {
-        return Optional.of(SportMapper.toDomain(sportCrudRepo.findBySlug(slug)));
+        return sportCrudRepo.findBySlug(slug).map(SportMapper::toDomain);
     }
 }

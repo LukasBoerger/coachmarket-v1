@@ -6,4 +6,6 @@ import java.util.Optional;
 public interface CoachRepository {
     List<Coach> findAllPublished();
     Optional<Coach> findBySlug(String slug);
+    List<Coach> searchPublished(CoachSearchQuery query);
+
 }
