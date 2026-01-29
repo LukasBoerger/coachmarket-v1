@@ -18,6 +18,17 @@ public class MyCoachProfileService {
         this.repo = repo;
     }
 
+    @Transactional
+    public void publish(String firebaseUid) {
+        var account = accountService.findOrCreateCoachAccount(firebaseUid);
+
+        var agg = repo.findByAccountId(account.getId())
+                .orElseThrow(() -> new IllegalStateException("No coach profile yet. Save profile first."));
+
+        // hier später: Validierung (Pflichtfelder) bevor publish
+        repo.setStatus(agg.coachId(), "PUBLISHED");
+    }
+
     public Optional<MyCoachProfileDto> getMyProfile(String firebaseUid) {
         var account = accountService.findOrCreateCoachAccount(firebaseUid);
 

@@ -7,6 +7,7 @@ import java.util.UUID;
 public interface MyCoachProfileRepository {
 
     Optional<CoachProfileAggregate> findByAccountId(UUID accountId);
+    void setStatus(UUID coachId, String status);
 
     CoachProfileAggregate upsert(UUID accountId, CoachProfileAggregate aggregate);
 

@@ -14,6 +14,7 @@ import de.coachkompass.backend.infrastructure.sport.SportCrudRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -166,5 +167,13 @@ public class MyCoachProfileRepositoryImpl implements MyCoachProfileRepository {
 
     private static int prioHolder(int prio) {
         return prio;
+    }
+
+    @Override
+    public void setStatus(UUID coachId, String status) {
+        var coach = coachRepo.findById(coachId).orElseThrow();
+        coach.setStatus(status);
+        coach.setUpdatedAt(OffsetDateTime.now());
+        coachRepo.save(coach);
     }
 }
