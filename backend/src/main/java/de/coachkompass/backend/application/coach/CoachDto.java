@@ -1,6 +1,7 @@
 package de.coachkompass.backend.application.coach;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 public record CoachDto(
@@ -15,5 +16,7 @@ public record CoachDto(
         BigDecimal priceMin,
         BigDecimal priceMax,
         String currency,
-        String status
+        String status,
+        String avatarUrl,
+        List<String> imageUrls
 ) {}
