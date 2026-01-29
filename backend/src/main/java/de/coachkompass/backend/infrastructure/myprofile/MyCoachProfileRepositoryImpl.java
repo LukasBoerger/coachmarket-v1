@@ -5,8 +5,10 @@ import de.coachkompass.backend.domain.util.SlugUtil;
 import de.coachkompass.backend.infrastructure.coach.*;
 import de.coachkompass.backend.infrastructure.coachspezialisation.CoachSpecializationCrudRepository;
 import de.coachkompass.backend.infrastructure.coachspezialisation.CoachSpecializationEntity;
+import de.coachkompass.backend.infrastructure.coachspezialisation.CoachSpecializationId;
 import de.coachkompass.backend.infrastructure.coachsport.CoachSportCrudRepository;
 import de.coachkompass.backend.infrastructure.coachsport.CoachSportEntity;
+import de.coachkompass.backend.infrastructure.coachsport.CoachSportId;
 import de.coachkompass.backend.infrastructure.specialization.SpecializationCrudRepository;
 import de.coachkompass.backend.infrastructure.sport.SportCrudRepository;
 import org.springframework.stereotype.Repository;
@@ -96,17 +98,15 @@ public class MyCoachProfileRepositoryImpl implements MyCoachProfileRepository {
     }
 
     private void replaceSports(CoachEntity coach, List<String> sportSlugs) {
-        coachSportRepo.deleteAllByCoachId(coach.getId());
+        coachSportRepo.deleteAllById_CoachId(coach.getId());
 
         int prio = 0;
         for (String slug : safeList(sportSlugs)) {
             int finalPrio = prio;
             sportRepo.findBySlug(slug).ifPresent(sport -> {
                 CoachSportEntity cs = new CoachSportEntity();
-                cs.setId(UUID.randomUUID());
-                cs.setCoachId(coach.getId());   // oder cs.setCoach(coach)
-                cs.setSportId(sport.getId());   // oder cs.setSport(sport)
-                cs.setPriority(prioHolder(finalPrio)); // siehe helper unten
+                cs.setId(new CoachSportId(coach.getId(), sport.getId()));
+                cs.setPriority(finalPrio);
                 coachSportRepo.save(cs);
             });
             prio++;
@@ -114,17 +114,15 @@ public class MyCoachProfileRepositoryImpl implements MyCoachProfileRepository {
     }
 
     private void replaceSpecializations(CoachEntity coach, List<String> specSlugs) {
-        coachSpecRepo.deleteAllByCoachId(coach.getId());
+        coachSpecRepo.deleteAllById_CoachId(coach.getId());
 
         int prio = 0;
         for (String slug : safeList(specSlugs)) {
             int finalPrio = prio;
             specRepo.findBySlug(slug).ifPresent(spec -> {
                 CoachSpecializationEntity csp = new CoachSpecializationEntity();
-                csp.setId(UUID.randomUUID());
-                csp.setCoachId(coach.getId());            // oder csp.setCoach(coach)
-                csp.setSpecializationId(spec.getId());    // oder csp.setSpecialization(spec)
-                csp.setPriority(prioHolder(finalPrio));
+                csp.setId(new CoachSpecializationId(coach.getId(), spec.getId()));
+                csp.setPriority(finalPrio);
                 coachSpecRepo.save(csp);
             });
             prio++;
@@ -132,15 +130,15 @@ public class MyCoachProfileRepositoryImpl implements MyCoachProfileRepository {
     }
 
     private CoachProfileAggregate loadAggregate(CoachEntity coach) {
-        var sports = coachSportRepo.findAllByCoachIdOrderByPriorityAsc(coach.getId())
+        var sports = coachSportRepo.findAllById_CoachIdOrderByPriorityAsc(coach.getId())
                 .stream()
-                .map(cs -> sportRepo.findById(cs.getSportId()).map(s -> s.getSlug()).orElse(null))
+                .map(cs -> sportRepo.findById(cs.getId().getSportId()).map(s -> s.getSlug()).orElse(null))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-        var specs = coachSpecRepo.findAllByCoachIdOrderByPriorityAsc(coach.getId())
+        var specs = coachSpecRepo.findAllById_CoachIdOrderByPriorityAsc(coach.getId())
                 .stream()
-                .map(csp -> specRepo.findById(csp.getSpecializationId()).map(s -> s.getSlug()).orElse(null))
+                .map(csp -> specRepo.findById(csp.getId().getSpecializationId()).map(s -> s.getSlug()).orElse(null))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
