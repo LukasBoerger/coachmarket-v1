@@ -108,3 +108,10 @@ insert into social_media_link (id, coach_id, platform, url, display_order, creat
 select gen_random_uuid(), c.id, 'INSTAGRAM', 'https://instagram.com/' || c.slug, 0, now()
 from coach c
     on conflict do nothing;
+
+insert into media_asset (id, coach_id, type, url, visibility, created_at)
+select gen_random_uuid(), c.id, 'IMAGE',
+       'https://picsum.photos/seed/' || c.slug || '/600/600',
+       'PUBLIC', now()
+from coach c
+    on conflict do nothing;

@@ -17,3 +17,8 @@ spring:
     enabled: true
     user: ${spring.datasource.username}
     password: ${spring.datasource.password}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://securetoken.google.com/coachkompass-cacbd

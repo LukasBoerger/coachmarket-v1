@@ -25,6 +25,9 @@ public class CoachEntity {
     @Column(columnDefinition = "uuid")
     private UUID id;
 
+    @Column(name = "account_id", columnDefinition = "uuid", nullable = true, unique = true)
+    private UUID accountId;
+
     @Column(name="display_name", nullable=false)
     private String displayName;
 

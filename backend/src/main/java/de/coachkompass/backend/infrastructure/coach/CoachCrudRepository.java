@@ -13,6 +13,10 @@ public interface CoachCrudRepository extends JpaRepository<CoachEntity, UUID> {
     Optional<CoachEntity> findBySlug(String slug);
     List<CoachEntity> findByStatus(String status);
 
+    Optional<CoachEntity> findByAccountId(UUID accountId);
+
+    boolean existsBySlug(String slug);
+
     @Query(value = """
         select
           c.id as id,
