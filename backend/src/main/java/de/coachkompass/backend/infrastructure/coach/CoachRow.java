@@ -10,10 +10,13 @@ public interface CoachRow {
     String getBio();
     String getWebsiteUrl();
     String getCity();
+    String getRegion();
+    String getCountry();
     Boolean getRemoteAvailable();
     Boolean getInPersonAvailable();
     BigDecimal getPriceMin();
     BigDecimal getPriceMax();
+    String getPricingModel();
     String getCurrency();
     String getStatus();
 }

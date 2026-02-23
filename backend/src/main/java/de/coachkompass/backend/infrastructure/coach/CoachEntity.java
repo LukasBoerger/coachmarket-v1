@@ -28,42 +28,46 @@ public class CoachEntity {
     @Column(name = "account_id", columnDefinition = "uuid", nullable = true, unique = true)
     private UUID accountId;
 
-    @Column(name="display_name", nullable=false)
+    @Column(name = "display_name", nullable = false)
     private String displayName;
 
-    @Column(nullable=false, unique=true)
+    @Column(nullable = false, unique = true)
     private String slug;
 
-    @Column(columnDefinition="text")
+    @Column(columnDefinition = "text")
     private String bio;
 
-    @Column(name="website_url")
+    @Column(name = "website_url")
     private String websiteUrl;
 
     private String city;
+    private String region;
+    private String country;
 
-    @Column(name="remote_available", nullable=false)
+    @Column(name = "remote_available", nullable = false)
     private boolean remoteAvailable;
 
-    @Column(name="in_person_available", nullable=false)
+    @Column(name = "in_person_available", nullable = false)
     private boolean inPersonAvailable;
 
-    @Column(name="price_min", precision=10, scale=2)
+    @Column(name = "price_min", precision = 10, scale = 2)
     private BigDecimal priceMin;
 
-    @Column(name="price_max", precision=10, scale=2)
+    @Column(name = "price_max", precision = 10, scale = 2)
     private BigDecimal priceMax;
 
-    @Column(nullable=false)
+    @Column(name = "pricing_model")
+    private String pricingModel;
+
+    @Column(nullable = false)
     private String currency;
 
-    @Column(nullable=false)
+    @Column(nullable = false)
     private String status;
 
-    @Column(name="created_at", nullable=false)
+    @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
-    @Column(name="updated_at", nullable=false)
+    @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
-
 }

@@ -18,8 +18,7 @@ public class MyCoachProfileController {
 
     @GetMapping("/api/my/coach-profile")
     public ResponseEntity<?> get(@AuthenticationPrincipal Jwt jwt) {
-        String uid = jwt.getSubject();
-        return service.getMyProfile(uid)
+        return service.getMyProfile(jwt.getSubject())
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.noContent().build());
     }
@@ -29,7 +28,16 @@ public class MyCoachProfileController {
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody MyCoachProfileDto dto
     ) {
-        String uid = jwt.getSubject();
-        return ResponseEntity.ok(service.upsertMyProfile(uid, dto));
+        return ResponseEntity.ok(service.upsertMyProfile(jwt.getSubject(), dto));
+    }
+
+    @PostMapping("/api/my/coach-profile/publish")
+    public ResponseEntity<MyCoachProfileDto> publish(@AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(service.publishMyProfile(jwt.getSubject()));
+    }
+
+    @PostMapping("/api/my/coach-profile/unpublish")
+    public ResponseEntity<MyCoachProfileDto> unpublish(@AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(service.unpublishMyProfile(jwt.getSubject()));
     }
 }

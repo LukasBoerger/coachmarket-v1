@@ -1,5 +1,6 @@
 package de.coachkompass.backend.infrastructure.myprofile;
 
+import de.coachkompass.backend.application.coach.SocialLinkDto;
 import de.coachkompass.backend.domain.myprofile.MyCoachProfileRepository;
 import de.coachkompass.backend.domain.util.SlugUtil;
 import de.coachkompass.backend.infrastructure.coach.*;
@@ -9,6 +10,8 @@ import de.coachkompass.backend.infrastructure.coachspezialisation.CoachSpecializ
 import de.coachkompass.backend.infrastructure.coachsport.CoachSportCrudRepository;
 import de.coachkompass.backend.infrastructure.coachsport.CoachSportEntity;
 import de.coachkompass.backend.infrastructure.coachsport.CoachSportId;
+import de.coachkompass.backend.infrastructure.socialmedia.SocialMediaLinkCrudRepository;
+import de.coachkompass.backend.infrastructure.socialmedia.SocialMediaLinkEntity;
 import de.coachkompass.backend.infrastructure.specialization.SpecializationCrudRepository;
 import de.coachkompass.backend.infrastructure.sport.SportCrudRepository;
 import org.springframework.stereotype.Repository;
@@ -26,19 +29,22 @@ public class MyCoachProfileRepositoryImpl implements MyCoachProfileRepository {
     private final CoachSpecializationCrudRepository coachSpecRepo;
     private final SportCrudRepository sportRepo;
     private final SpecializationCrudRepository specRepo;
+    private final SocialMediaLinkCrudRepository socialRepo;
 
     public MyCoachProfileRepositoryImpl(
             CoachCrudRepository coachRepo,
             CoachSportCrudRepository coachSportRepo,
             CoachSpecializationCrudRepository coachSpecRepo,
             SportCrudRepository sportRepo,
-            SpecializationCrudRepository specRepo
+            SpecializationCrudRepository specRepo,
+            SocialMediaLinkCrudRepository socialRepo
     ) {
         this.coachRepo = coachRepo;
         this.coachSportRepo = coachSportRepo;
         this.coachSpecRepo = coachSpecRepo;
         this.sportRepo = sportRepo;
         this.specRepo = specRepo;
+        this.socialRepo = socialRepo;
     }
 
     @Override
@@ -48,125 +54,31 @@ public class MyCoachProfileRepositoryImpl implements MyCoachProfileRepository {
 
     @Override
     @Transactional
-    public CoachProfileAggregate upsert(UUID accountId, CoachProfileAggregate aggregate) {
+    public CoachProfileAggregate upsert(UUID accountId, CoachProfileAggregate agg) {
+        var now = OffsetDateTime.now();
         CoachEntity coach = coachRepo.findByAccountId(accountId)
-                .orElseGet(() -> createCoachSkeleton(accountId, aggregate.displayName(), aggregate.currency()));
+                .orElseGet(() -> createCoachSkeleton(accountId, agg.displayName(), agg.currency(), now));
 
-        // update coach fields
-        coach.setDisplayName(aggregate.displayName());
-        coach.setBio(aggregate.bio());
-        coach.setWebsiteUrl(aggregate.websiteUrl());
-        coach.setCity(aggregate.city());
-        coach.setRemoteAvailable(aggregate.remoteAvailable());
-        coach.setInPersonAvailable(aggregate.inPersonAvailable());
-        coach.setPriceMin(aggregate.priceMin());
-        coach.setPriceMax(aggregate.priceMax());
-        coach.setCurrency(aggregate.currency() == null ? "EUR" : aggregate.currency());
-        // status: beim Erstellen DRAFT lassen; später kannst du hier Regeln reinpacken
+        coach.setDisplayName(agg.displayName());
+        coach.setBio(agg.bio());
+        coach.setWebsiteUrl(agg.websiteUrl());
+        coach.setCity(agg.city());
+        coach.setRegion(agg.region());
+        coach.setCountry(agg.country());
+        coach.setRemoteAvailable(agg.remoteAvailable());
+        coach.setInPersonAvailable(agg.inPersonAvailable());
+        coach.setPriceMin(agg.priceMin());
+        coach.setPriceMax(agg.priceMax());
+        coach.setPricingModel(agg.pricingModel());
+        coach.setCurrency(agg.currency() == null ? "EUR" : agg.currency());
+        coach.setUpdatedAt(now);
         coachRepo.save(coach);
 
-        replaceSports(coach, aggregate.sportSlugs());
-        replaceSpecializations(coach, aggregate.specializationSlugs());
+        replaceSports(coach, agg.sportSlugs());
+        replaceSpecializations(coach, agg.specializationSlugs());
+        replaceSocialLinks(coach, agg.socialLinks());
 
         return loadAggregate(coach);
-    }
-
-    // ---------- internals ----------
-
-    private CoachEntity createCoachSkeleton(UUID accountId, String displayName, String currency) {
-        String slugBase = SlugUtil.slugify(displayName);
-        String slug = ensureUniqueSlug(slugBase);
-
-        CoachEntity c = new CoachEntity();
-        c.setId(UUID.randomUUID());
-        c.setAccountId(accountId);        // falls du Relation nutzt: setAccount(accountEntity)
-        c.setDisplayName(displayName);
-        c.setSlug(slug);
-        c.setRemoteAvailable(true);
-        c.setInPersonAvailable(true);
-        c.setCurrency(currency == null ? "EUR" : currency);
-        c.setStatus("DRAFT");
-        return coachRepo.save(c);
-    }
-
-    private String ensureUniqueSlug(String slugBase) {
-        String candidate = slugBase;
-        int i = 2;
-        while (coachRepo.existsBySlug(candidate)) {
-            candidate = slugBase + "-" + i++;
-        }
-        return candidate;
-    }
-
-    private void replaceSports(CoachEntity coach, List<String> sportSlugs) {
-        coachSportRepo.deleteAllById_CoachId(coach.getId());
-
-        int prio = 0;
-        for (String slug : safeList(sportSlugs)) {
-            int finalPrio = prio;
-            sportRepo.findBySlug(slug).ifPresent(sport -> {
-                CoachSportEntity cs = new CoachSportEntity();
-                cs.setId(new CoachSportId(coach.getId(), sport.getId()));
-                cs.setPriority(finalPrio);
-                coachSportRepo.save(cs);
-            });
-            prio++;
-        }
-    }
-
-    private void replaceSpecializations(CoachEntity coach, List<String> specSlugs) {
-        coachSpecRepo.deleteAllById_CoachId(coach.getId());
-
-        int prio = 0;
-        for (String slug : safeList(specSlugs)) {
-            int finalPrio = prio;
-            specRepo.findBySlug(slug).ifPresent(spec -> {
-                CoachSpecializationEntity csp = new CoachSpecializationEntity();
-                csp.setId(new CoachSpecializationId(coach.getId(), spec.getId()));
-                csp.setPriority(finalPrio);
-                coachSpecRepo.save(csp);
-            });
-            prio++;
-        }
-    }
-
-    private CoachProfileAggregate loadAggregate(CoachEntity coach) {
-        var sports = coachSportRepo.findAllById_CoachIdOrderByPriorityAsc(coach.getId())
-                .stream()
-                .map(cs -> sportRepo.findById(cs.getId().getSportId()).map(s -> s.getSlug()).orElse(null))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-        var specs = coachSpecRepo.findAllById_CoachIdOrderByPriorityAsc(coach.getId())
-                .stream()
-                .map(csp -> specRepo.findById(csp.getId().getSpecializationId()).map(s -> s.getSlug()).orElse(null))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-        return new CoachProfileAggregate(
-                coach.getId(),
-                coach.getDisplayName(),
-                coach.getSlug(),
-                coach.getBio(),
-                coach.getWebsiteUrl(),
-                coach.getCity(),
-                coach.isRemoteAvailable(),
-                coach.isInPersonAvailable(),
-                coach.getPriceMin(),
-                coach.getPriceMax(),
-                coach.getCurrency(),
-                coach.getStatus(),
-                sports,
-                specs
-        );
-    }
-
-    private static <T> List<T> safeList(List<T> in) {
-        return in == null ? List.of() : in;
-    }
-
-    private static int prioHolder(int prio) {
-        return prio;
     }
 
     @Override
@@ -175,5 +87,105 @@ public class MyCoachProfileRepositoryImpl implements MyCoachProfileRepository {
         coach.setStatus(status);
         coach.setUpdatedAt(OffsetDateTime.now());
         coachRepo.save(coach);
+    }
+
+    // ---- internals ----
+
+    private CoachEntity createCoachSkeleton(UUID accountId, String displayName, String currency, OffsetDateTime now) {
+        String slug = ensureUniqueSlug(SlugUtil.slugify(displayName));
+        CoachEntity c = CoachEntity.builder()
+                .id(UUID.randomUUID())
+                .accountId(accountId)
+                .displayName(displayName)
+                .slug(slug)
+                .remoteAvailable(true)
+                .inPersonAvailable(true)
+                .currency(currency == null ? "EUR" : currency)
+                .status("DRAFT")
+                .createdAt(now)
+                .updatedAt(now)
+                .build();
+        return coachRepo.save(c);
+    }
+
+    private String ensureUniqueSlug(String base) {
+        String candidate = base;
+        int i = 2;
+        while (coachRepo.existsBySlug(candidate)) {
+            candidate = base + "-" + i++;
+        }
+        return candidate;
+    }
+
+    private void replaceSports(CoachEntity coach, List<String> slugs) {
+        coachSportRepo.deleteAllById_CoachId(coach.getId());
+        int prio = 0;
+        for (String slug : safeList(slugs)) {
+            int p = prio++;
+            sportRepo.findBySlug(slug).ifPresent(sport -> {
+                CoachSportEntity cs = new CoachSportEntity();
+                cs.setId(new CoachSportId(coach.getId(), sport.getId()));
+                cs.setPriority(p);
+                coachSportRepo.save(cs);
+            });
+        }
+    }
+
+    private void replaceSpecializations(CoachEntity coach, List<String> slugs) {
+        coachSpecRepo.deleteAllById_CoachId(coach.getId());
+        int prio = 0;
+        for (String slug : safeList(slugs)) {
+            int p = prio++;
+            specRepo.findBySlug(slug).ifPresent(spec -> {
+                CoachSpecializationEntity csp = new CoachSpecializationEntity();
+                csp.setId(new CoachSpecializationId(coach.getId(), spec.getId()));
+                csp.setPriority(p);
+                coachSpecRepo.save(csp);
+            });
+        }
+    }
+
+    private void replaceSocialLinks(CoachEntity coach, List<SocialLinkDto> links) {
+        socialRepo.deleteAllByCoachId(coach.getId());
+        if (links == null) return;
+        int order = 0;
+        for (SocialLinkDto link : links) {
+            socialRepo.save(SocialMediaLinkEntity.builder()
+                    .id(UUID.randomUUID())
+                    .coachId(coach.getId())
+                    .platform(link.platform())
+                    .url(link.url())
+                    .displayOrder(order++)
+                    .createdAt(OffsetDateTime.now())
+                    .build());
+        }
+    }
+
+    private CoachProfileAggregate loadAggregate(CoachEntity coach) {
+        var sports = coachSportRepo.findAllById_CoachIdOrderByPriorityAsc(coach.getId()).stream()
+                .map(cs -> sportRepo.findById(cs.getId().getSportId()).map(s -> s.getSlug()).orElse(null))
+                .filter(Objects::nonNull).collect(Collectors.toList());
+
+        var specs = coachSpecRepo.findAllById_CoachIdOrderByPriorityAsc(coach.getId()).stream()
+                .map(cs -> specRepo.findById(cs.getId().getSpecializationId()).map(s -> s.getSlug()).orElse(null))
+                .filter(Objects::nonNull).collect(Collectors.toList());
+
+        var socials = socialRepo.findAllByCoachIdOrderByDisplayOrderAsc(coach.getId()).stream()
+                .map(s -> new SocialLinkDto(s.getPlatform(), s.getUrl()))
+                .collect(Collectors.toList());
+
+        return new CoachProfileAggregate(
+                coach.getId(), coach.getDisplayName(), coach.getSlug(),
+                coach.getBio(), coach.getWebsiteUrl(),
+                coach.getCity(), coach.getRegion(), coach.getCountry(),
+                coach.isRemoteAvailable(), coach.isInPersonAvailable(),
+                coach.getPriceMin(), coach.getPriceMax(), coach.getPricingModel(),
+                coach.getCurrency(), coach.getStatus(),
+                sports, specs, socials
+        );
+    }
+
+    private static <T> List<T> safeList(List<T> in) {
+        return in == null ? List.of() : in;
     }
 }

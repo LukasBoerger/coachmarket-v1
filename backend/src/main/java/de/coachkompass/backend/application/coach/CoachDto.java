@@ -11,12 +11,18 @@ public record CoachDto(
         String bio,
         String websiteUrl,
         String city,
+        String region,
+        String country,
         boolean remoteAvailable,
         boolean inPersonAvailable,
         BigDecimal priceMin,
         BigDecimal priceMax,
+        String pricingModel,
         String currency,
         String status,
         String avatarUrl,
-        List<String> imageUrls
+        List<String> imageUrls,
+        List<String> sportSlugs,
+        List<String> specializationSlugs,
+        List<SocialLinkDto> socialLinks
 ) {}

@@ -2,11 +2,18 @@ package de.coachkompass.backend.application.coach;
 
 import de.coachkompass.backend.domain.coach.Coach;
 
+import java.util.List;
+
 public final class CoachDtoMapper {
 
     private CoachDtoMapper() {}
 
-    public static CoachDto toDto(Coach coach, String avatarUrl, java.util.List<String> imageUrls) {
+    public static CoachDto toDto(
+            Coach coach,
+            String avatarUrl,
+            List<String> imageUrls,
+            List<SocialLinkDto> socialLinks
+    ) {
         return new CoachDto(
                 coach.getId(),
                 coach.getDisplayName(),
@@ -14,14 +21,20 @@ public final class CoachDtoMapper {
                 coach.getBio(),
                 coach.getWebsiteUrl(),
                 coach.getCity(),
+                coach.getRegion(),
+                coach.getCountry(),
                 coach.isRemoteAvailable(),
                 coach.isInPersonAvailable(),
                 coach.getPriceMin(),
                 coach.getPriceMax(),
+                coach.getPricingModel(),
                 coach.getCurrency(),
                 coach.getStatus().name(),
                 avatarUrl,
-                imageUrls
+                imageUrls,
+                coach.getSportSlugs(),
+                coach.getSpecializationSlugs(),
+                socialLinks
         );
     }
 }

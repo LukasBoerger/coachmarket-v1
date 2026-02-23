@@ -3,28 +3,35 @@ package de.coachkompass.backend.domain.coach;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
 @Data
 public class Coach {
 
-    private final UUID id;
-    private final String displayName;
-    private final String slug;
-    private final String bio;
-    private final String websiteUrl;
-    private final String city;
-    private final boolean remoteAvailable;
-    private final boolean inPersonAvailable;
-    private final BigDecimal priceMin;
-    private final BigDecimal priceMax;
-    private final String currency;
-    private final CoachStatus status;
+    private UUID id;
+    private String displayName;
+    private String slug;
+    private String bio;
+    private String websiteUrl;
+    private String city;
+    private String region;
+    private String country;
+    private boolean remoteAvailable;
+    private boolean inPersonAvailable;
+    private BigDecimal priceMin;
+    private BigDecimal priceMax;
+    private String pricingModel;
+    private String currency;
+    private CoachStatus status;
+    private List<String> sportSlugs;
+    private List<String> specializationSlugs;
 
     public boolean isPublished() {
         return status == CoachStatus.PUBLISHED;

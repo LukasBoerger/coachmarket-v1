@@ -13,28 +13,22 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
+        http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults())
-
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                        // Public browse
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/health",
+                        // öffentlich:
+                        .requestMatchers(
+                                "/", "/index.html",
                                 "/api/coaches/**",
                                 "/api/sports/**",
                                 "/api/specializations/**"
                         ).permitAll()
-
-                        // everything else needs a valid Firebase JWT
+                        // alles andere: nur mit Firebase-Token
                         .anyRequest().authenticated()
                 )
+                // JWT von Firebase prüfen
+                .oauth2ResourceServer(oauth -> oauth.jwt(Customizer.withDefaults()));
 
-                // JWT validation via issuer + jwks from Google
-                .oauth2ResourceServer(oauth -> oauth.jwt(Customizer.withDefaults()))
-
-                .build();
+        return http.build();
     }
 }

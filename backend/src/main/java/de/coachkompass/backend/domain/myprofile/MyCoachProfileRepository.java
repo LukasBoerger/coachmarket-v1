@@ -1,5 +1,8 @@
 package de.coachkompass.backend.domain.myprofile;
 
+import de.coachkompass.backend.application.coach.SocialLinkDto;
+
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -8,7 +11,6 @@ public interface MyCoachProfileRepository {
 
     Optional<CoachProfileAggregate> findByAccountId(UUID accountId);
     void setStatus(UUID coachId, String status);
-
     CoachProfileAggregate upsert(UUID accountId, CoachProfileAggregate aggregate);
 
     record CoachProfileAggregate(
@@ -18,13 +20,17 @@ public interface MyCoachProfileRepository {
             String bio,
             String websiteUrl,
             String city,
+            String region,
+            String country,
             boolean remoteAvailable,
             boolean inPersonAvailable,
-            java.math.BigDecimal priceMin,
-            java.math.BigDecimal priceMax,
+            BigDecimal priceMin,
+            BigDecimal priceMax,
+            String pricingModel,
             String currency,
             String status,
             List<String> sportSlugs,
-            List<String> specializationSlugs
+            List<String> specializationSlugs,
+            List<SocialLinkDto> socialLinks
     ) {}
 }
