@@ -1,17 +1,12 @@
 package de.coachkompass.backend.infrastructure.myprofile;
 
-import de.coachkompass.backend.application.coach.SocialLinkDto;
+import de.coachkompass.backend.domain.myprofile.CoachProfile;
 import de.coachkompass.backend.domain.myprofile.MyCoachProfileRepository;
 import de.coachkompass.backend.domain.util.SlugUtil;
 import de.coachkompass.backend.infrastructure.coach.*;
-import de.coachkompass.backend.infrastructure.coachspezialisation.CoachSpecializationCrudRepository;
-import de.coachkompass.backend.infrastructure.coachspezialisation.CoachSpecializationEntity;
-import de.coachkompass.backend.infrastructure.coachspezialisation.CoachSpecializationId;
-import de.coachkompass.backend.infrastructure.coachsport.CoachSportCrudRepository;
-import de.coachkompass.backend.infrastructure.coachsport.CoachSportEntity;
-import de.coachkompass.backend.infrastructure.coachsport.CoachSportId;
-import de.coachkompass.backend.infrastructure.socialmedia.SocialMediaLinkCrudRepository;
-import de.coachkompass.backend.infrastructure.socialmedia.SocialMediaLinkEntity;
+import de.coachkompass.backend.infrastructure.coachspezialisation.*;
+import de.coachkompass.backend.infrastructure.coachsport.*;
+import de.coachkompass.backend.infrastructure.socialmedia.*;
 import de.coachkompass.backend.infrastructure.specialization.SpecializationCrudRepository;
 import de.coachkompass.backend.infrastructure.sport.SportCrudRepository;
 import org.springframework.stereotype.Repository;
@@ -48,37 +43,37 @@ public class MyCoachProfileRepositoryImpl implements MyCoachProfileRepository {
     }
 
     @Override
-    public Optional<CoachProfileAggregate> findByAccountId(UUID accountId) {
-        return coachRepo.findByAccountId(accountId).map(this::loadAggregate);
+    public Optional<CoachProfile> findByAccountId(UUID accountId) {
+        return coachRepo.findByAccountId(accountId).map(this::loadProfile);
     }
 
     @Override
     @Transactional
-    public CoachProfileAggregate upsert(UUID accountId, CoachProfileAggregate agg) {
+    public CoachProfile upsert(UUID accountId, CoachProfile profile) {
         var now = OffsetDateTime.now();
         CoachEntity coach = coachRepo.findByAccountId(accountId)
-                .orElseGet(() -> createCoachSkeleton(accountId, agg.displayName(), agg.currency(), now));
+                .orElseGet(() -> createCoachSkeleton(accountId, profile.displayName(), profile.currency(), now));
 
-        coach.setDisplayName(agg.displayName());
-        coach.setBio(agg.bio());
-        coach.setWebsiteUrl(agg.websiteUrl());
-        coach.setCity(agg.city());
-        coach.setRegion(agg.region());
-        coach.setCountry(agg.country());
-        coach.setRemoteAvailable(agg.remoteAvailable());
-        coach.setInPersonAvailable(agg.inPersonAvailable());
-        coach.setPriceMin(agg.priceMin());
-        coach.setPriceMax(agg.priceMax());
-        coach.setPricingModel(agg.pricingModel());
-        coach.setCurrency(agg.currency() == null ? "EUR" : agg.currency());
+        coach.setDisplayName(profile.displayName());
+        coach.setBio(profile.bio());
+        coach.setWebsiteUrl(profile.websiteUrl());
+        coach.setCity(profile.city());
+        coach.setRegion(profile.region());
+        coach.setCountry(profile.country());
+        coach.setRemoteAvailable(profile.remoteAvailable());
+        coach.setInPersonAvailable(profile.inPersonAvailable());
+        coach.setPriceMin(profile.priceMin());
+        coach.setPriceMax(profile.priceMax());
+        coach.setPricingModel(profile.pricingModel());
+        coach.setCurrency(profile.currency() == null ? "EUR" : profile.currency());
         coach.setUpdatedAt(now);
         coachRepo.save(coach);
 
-        replaceSports(coach, agg.sportSlugs());
-        replaceSpecializations(coach, agg.specializationSlugs());
-        replaceSocialLinks(coach, agg.socialLinks());
+        replaceSports(coach, profile.sportSlugs());
+        replaceSpecializations(coach, profile.specializationSlugs());
+        replaceSocialLinks(coach, profile.socialLinks());
 
-        return loadAggregate(coach);
+        return loadProfile(coach);
     }
 
     @Override
@@ -145,11 +140,11 @@ public class MyCoachProfileRepositoryImpl implements MyCoachProfileRepository {
         }
     }
 
-    private void replaceSocialLinks(CoachEntity coach, List<SocialLinkDto> links) {
+    private void replaceSocialLinks(CoachEntity coach, List<CoachProfile.SocialLink> links) {
         socialRepo.deleteAllByCoachId(coach.getId());
         if (links == null) return;
         int order = 0;
-        for (SocialLinkDto link : links) {
+        for (CoachProfile.SocialLink link : links) {
             socialRepo.save(SocialMediaLinkEntity.builder()
                     .id(UUID.randomUUID())
                     .coachId(coach.getId())
@@ -161,7 +156,7 @@ public class MyCoachProfileRepositoryImpl implements MyCoachProfileRepository {
         }
     }
 
-    private CoachProfileAggregate loadAggregate(CoachEntity coach) {
+    private CoachProfile loadProfile(CoachEntity coach) {
         var sports = coachSportRepo.findAllById_CoachIdOrderByPriorityAsc(coach.getId()).stream()
                 .map(cs -> sportRepo.findById(cs.getId().getSportId()).map(s -> s.getSlug()).orElse(null))
                 .filter(Objects::nonNull).collect(Collectors.toList());
@@ -171,10 +166,10 @@ public class MyCoachProfileRepositoryImpl implements MyCoachProfileRepository {
                 .filter(Objects::nonNull).collect(Collectors.toList());
 
         var socials = socialRepo.findAllByCoachIdOrderByDisplayOrderAsc(coach.getId()).stream()
-                .map(s -> new SocialLinkDto(s.getPlatform(), s.getUrl()))
+                .map(s -> new CoachProfile.SocialLink(s.getPlatform(), s.getUrl()))
                 .collect(Collectors.toList());
 
-        return new CoachProfileAggregate(
+        return new CoachProfile(
                 coach.getId(), coach.getDisplayName(), coach.getSlug(),
                 coach.getBio(), coach.getWebsiteUrl(),
                 coach.getCity(), coach.getRegion(), coach.getCountry(),

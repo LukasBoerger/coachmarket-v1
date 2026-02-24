@@ -8,8 +8,10 @@ import java.util.UUID;
 public interface MediaAssetJpaRepository extends JpaRepository<MediaAssetEntity, UUID> {
 
     List<MediaAssetEntity> findByCoachIdAndTypeAndVisibilityOrderByCreatedAtAsc(
-            UUID coachId,
-            String type,
-            String visibility
+            UUID coachId, String type, String visibility
+    );
+
+    List<MediaAssetEntity> findByCoachIdInAndTypeAndVisibility(
+            List<UUID> coachIds, String type, String visibility
     );
 }

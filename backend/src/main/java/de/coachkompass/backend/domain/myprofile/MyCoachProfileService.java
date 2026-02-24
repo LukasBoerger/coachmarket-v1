@@ -1,12 +1,10 @@
 package de.coachkompass.backend.domain.myprofile;
 
-import de.coachkompass.backend.application.myprofile.MyCoachProfileDto;
 import de.coachkompass.backend.domain.account.AccountService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 public class MyCoachProfileService {
@@ -19,63 +17,32 @@ public class MyCoachProfileService {
         this.repo = repo;
     }
 
-    public Optional<MyCoachProfileDto> getMyProfile(String firebaseUid) {
+    public Optional<CoachProfile> getMyProfile(String firebaseUid) {
         var account = accountService.findOrCreateCoachAccount(firebaseUid);
-        return repo.findByAccountId(account.getId()).map(this::toDto);
+        return repo.findByAccountId(account.getId());
     }
 
     @Transactional
-    public MyCoachProfileDto upsertMyProfile(String firebaseUid, MyCoachProfileDto dto) {
+    public CoachProfile upsertMyProfile(String firebaseUid, CoachProfile profile) {
         var account = accountService.findOrCreateCoachAccount(firebaseUid);
-        var aggregate = new MyCoachProfileRepository.CoachProfileAggregate(
-                null,
-                dto.displayName(), dto.slug(),
-                dto.bio(), dto.websiteUrl(),
-                dto.city(), dto.region(), dto.country(),
-                dto.remoteAvailable(), dto.inPersonAvailable(),
-                dto.priceMin(), dto.priceMax(), dto.pricingModel(),
-                dto.currency(), dto.status(),
-                dto.sportSlugs(), dto.specializationSlugs(),
-                dto.socialLinks()
-        );
-        return toDto(repo.upsert(account.getId(), aggregate));
+        return repo.upsert(account.getId(), profile);
     }
 
     @Transactional
-    public MyCoachProfileDto publishMyProfile(String firebaseUid) {
+    public CoachProfile publishMyProfile(String firebaseUid) {
         var account = accountService.findOrCreateCoachAccount(firebaseUid);
-        var agg = repo.findByAccountId(account.getId())
+        var profile = repo.findByAccountId(account.getId())
                 .orElseThrow(() -> new IllegalStateException("No coach profile found. Save profile first."));
-        repo.setStatus(agg.coachId(), "PUBLISHED");
-        return toDto(repo.findByAccountId(account.getId()).orElseThrow());
+        repo.setStatus(profile.coachId(), "PUBLISHED");
+        return repo.findByAccountId(account.getId()).orElseThrow();
     }
 
     @Transactional
-    public MyCoachProfileDto unpublishMyProfile(String firebaseUid) {
+    public CoachProfile unpublishMyProfile(String firebaseUid) {
         var account = accountService.findOrCreateCoachAccount(firebaseUid);
-        var agg = repo.findByAccountId(account.getId())
+        var profile = repo.findByAccountId(account.getId())
                 .orElseThrow(() -> new IllegalStateException("No coach profile found."));
-        repo.setStatus(agg.coachId(), "DRAFT");
-        return toDto(repo.findByAccountId(account.getId()).orElseThrow());
-    }
-
-    public UUID getCoachId(String firebaseUid) {
-        var account = accountService.findOrCreateCoachAccount(firebaseUid);
-        return repo.findByAccountId(account.getId())
-                .map(MyCoachProfileRepository.CoachProfileAggregate::coachId)
-                .orElseThrow(() -> new IllegalStateException("No coach profile found"));
-    }
-
-    private MyCoachProfileDto toDto(MyCoachProfileRepository.CoachProfileAggregate a) {
-        return new MyCoachProfileDto(
-                a.displayName(), a.bio(), a.websiteUrl(),
-                a.city(), a.region(), a.country(),
-                a.remoteAvailable(), a.inPersonAvailable(),
-                a.priceMin(), a.priceMax(), a.pricingModel(),
-                a.currency(),
-                a.sportSlugs(), a.specializationSlugs(),
-                a.socialLinks(),
-                a.status(), a.slug()
-        );
+        repo.setStatus(profile.coachId(), "DRAFT");
+        return repo.findByAccountId(account.getId()).orElseThrow();
     }
 }

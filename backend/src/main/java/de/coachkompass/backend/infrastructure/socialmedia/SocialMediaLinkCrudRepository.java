@@ -8,4 +8,5 @@ import java.util.UUID;
 public interface SocialMediaLinkCrudRepository extends JpaRepository<SocialMediaLinkEntity, UUID> {
     List<SocialMediaLinkEntity> findAllByCoachIdOrderByDisplayOrderAsc(UUID coachId);
     void deleteAllByCoachId(UUID coachId);
+    List<SocialMediaLinkEntity> findAllByCoachIdIn(List<UUID> coachIds);
 }
