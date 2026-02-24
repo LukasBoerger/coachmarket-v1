@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class MyCoachProfileService {
@@ -56,6 +57,13 @@ public class MyCoachProfileService {
                 .orElseThrow(() -> new IllegalStateException("No coach profile found."));
         repo.setStatus(agg.coachId(), "DRAFT");
         return toDto(repo.findByAccountId(account.getId()).orElseThrow());
+    }
+
+    public UUID getCoachId(String firebaseUid) {
+        var account = accountService.findOrCreateCoachAccount(firebaseUid);
+        return repo.findByAccountId(account.getId())
+                .map(MyCoachProfileRepository.CoachProfileAggregate::coachId)
+                .orElseThrow(() -> new IllegalStateException("No coach profile found"));
     }
 
     private MyCoachProfileDto toDto(MyCoachProfileRepository.CoachProfileAggregate a) {
