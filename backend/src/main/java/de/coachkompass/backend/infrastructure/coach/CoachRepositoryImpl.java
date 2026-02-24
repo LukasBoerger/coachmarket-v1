@@ -6,9 +6,7 @@ import de.coachkompass.backend.domain.coach.CoachSearchQuery;
 import de.coachkompass.backend.infrastructure.coachspezialisation.CoachSpecializationCrudRepository;
 import de.coachkompass.backend.infrastructure.coachsport.CoachSportCrudRepository;
 import de.coachkompass.backend.infrastructure.specialization.SpecializationCrudRepository;
-import de.coachkompass.backend.infrastructure.specialization.SpecializationEntity;
 import de.coachkompass.backend.infrastructure.sport.SportCrudRepository;
-import de.coachkompass.backend.infrastructure.sport.SportEntity;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -43,14 +41,14 @@ public class CoachRepositoryImpl implements CoachRepository {
     @Override
     public List<Coach> findAllPublished() {
         return crudRepo.findByStatus("PUBLISHED").stream()
-                .map(e -> CoachMapper.toDomain(e, loadSportSlugs(e.getId()), loadSpecSlugs(e.getId())))
+                .map(e -> CoachMapper.toDomain(e, loadSports(e.getId()), loadSpecs(e.getId())))
                 .toList();
     }
 
     @Override
     public Optional<Coach> findBySlug(String slug) {
         return crudRepo.findBySlug(slug)
-                .map(e -> CoachMapper.toDomain(e, loadSportSlugs(e.getId()), loadSpecSlugs(e.getId())));
+                .map(e -> CoachMapper.toDomain(e, loadSports(e.getId()), loadSpecs(e.getId())));
     }
 
     @Override
@@ -63,34 +61,36 @@ public class CoachRepositoryImpl implements CoachRepository {
                         query.city(),
                         query.priceMax()
                 ).stream()
-                .map(r -> CoachMapper.toDomain(r, loadSportSlugs(r.getId()), loadSpecSlugs(r.getId())))
+                .map(r -> CoachMapper.toDomain(r, loadSports(r.getId()), loadSpecs(r.getId())))
                 .toList();
     }
 
     @Override
     public List<String> findSportSlugsByCoachId(UUID coachId) {
-        return loadSportSlugs(coachId);
+        return loadSports(coachId).stream().map(Coach.SportRef::slug).toList();
     }
 
     @Override
     public List<String> findSpecializationSlugsByCoachId(UUID coachId) {
-        return loadSpecSlugs(coachId);
+        return loadSpecs(coachId).stream().map(Coach.SpecializationRef::slug).toList();
     }
 
     // ---- internals ----
 
-    private List<String> loadSportSlugs(UUID coachId) {
+    private List<Coach.SportRef> loadSports(UUID coachId) {
         return coachSportRepo.findAllById_CoachIdOrderByPriorityAsc(coachId).stream()
                 .map(cs -> sportRepo.findById(cs.getId().getSportId())
-                        .map(SportEntity::getSlug).orElse(null))
+                        .map(s -> new Coach.SportRef(s.getSlug(), s.getName()))
+                        .orElse(null))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    private List<String> loadSpecSlugs(UUID coachId) {
+    private List<Coach.SpecializationRef> loadSpecs(UUID coachId) {
         return coachSpecRepo.findAllById_CoachIdOrderByPriorityAsc(coachId).stream()
                 .map(cs -> specRepo.findById(cs.getId().getSpecializationId())
-                        .map(SpecializationEntity::getSlug).orElse(null))
+                        .map(s -> new Coach.SpecializationRef(s.getSlug(), s.getName()))
+                        .orElse(null))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }

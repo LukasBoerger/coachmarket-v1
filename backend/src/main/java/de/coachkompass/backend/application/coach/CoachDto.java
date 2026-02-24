@@ -22,7 +22,10 @@ public record CoachDto(
         String status,
         String avatarUrl,
         List<String> imageUrls,
-        List<String> sportSlugs,
-        List<String> specializationSlugs,
+        List<SportRefDto> sports,
+        List<SpecializationRefDto> specializations,
         List<SocialLinkDto> socialLinks
-) {}
+) {
+    public record SportRefDto(String slug, String name) {}
+    public record SpecializationRefDto(String slug, String name) {}
+}

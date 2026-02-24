@@ -30,10 +30,13 @@ public class Coach {
     private String pricingModel;
     private String currency;
     private CoachStatus status;
-    private List<String> sportSlugs;
-    private List<String> specializationSlugs;
+    private List<SportRef> sports;
+    private List<SpecializationRef> specializations;
 
     public boolean isPublished() {
         return status == CoachStatus.PUBLISHED;
     }
+
+    public record SportRef(String slug, String name) {}
+    public record SpecializationRef(String slug, String name) {}
 }

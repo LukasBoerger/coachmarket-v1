@@ -32,8 +32,12 @@ public final class CoachDtoMapper {
                 coach.getStatus().name(),
                 avatarUrl,
                 imageUrls,
-                coach.getSportSlugs(),
-                coach.getSpecializationSlugs(),
+                coach.getSports().stream()
+                        .map(s -> new CoachDto.SportRefDto(s.slug(), s.name()))
+                        .toList(),
+                coach.getSpecializations().stream()
+                        .map(s -> new CoachDto.SpecializationRefDto(s.slug(), s.name()))
+                        .toList(),
                 socialLinks
         );
     }

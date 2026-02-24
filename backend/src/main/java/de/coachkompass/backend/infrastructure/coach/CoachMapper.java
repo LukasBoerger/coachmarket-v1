@@ -8,7 +8,7 @@ import java.util.List;
 public final class CoachMapper {
     private CoachMapper() {}
 
-    public static Coach toDomain(CoachEntity e, List<String> sportSlugs, List<String> specializationSlugs) {
+    public static Coach toDomain(CoachEntity e, List<Coach.SportRef> sports, List<Coach.SpecializationRef> specializations) {
         return Coach.builder()
                 .id(e.getId())
                 .displayName(e.getDisplayName())
@@ -25,12 +25,12 @@ public final class CoachMapper {
                 .pricingModel(e.getPricingModel())
                 .currency(e.getCurrency())
                 .status(CoachStatus.valueOf(e.getStatus()))
-                .sportSlugs(sportSlugs)
-                .specializationSlugs(specializationSlugs)
+                .sports(sports)
+                .specializations(specializations)
                 .build();
     }
 
-    public static Coach toDomain(CoachRow r, List<String> sportSlugs, List<String> specializationSlugs) {
+    public static Coach toDomain(CoachRow r, List<Coach.SportRef> sports, List<Coach.SpecializationRef> specializations) {
         return Coach.builder()
                 .id(r.getId())
                 .displayName(r.getDisplayName())
@@ -47,8 +47,8 @@ public final class CoachMapper {
                 .pricingModel(r.getPricingModel())
                 .currency(r.getCurrency())
                 .status(CoachStatus.valueOf(r.getStatus()))
-                .sportSlugs(sportSlugs)
-                .specializationSlugs(specializationSlugs)
+                .sports(sports)
+                .specializations(specializations)
                 .build();
     }
 }
